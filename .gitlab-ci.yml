@@ -1,3 +1,7 @@
+before_script:
+    - apk update
+    - apk add make gcc musl-dev
+
 job1:
     stage: build
     script: "./configure;make test"
