@@ -1,17 +1,30 @@
-.PHONY: clean
+.PHONY: clean directories
 
 default: all
 
-all: ci
+all: directories ci
 
-ci: src/ci.c
-	gcc src/ci.c -o ci
+directories:
+	mkdir -p build
 
-run-tests: test/run-tests.c
-	gcc test/run-tests.c -o run-tests
+build/ci.o: src/ci.c
+	gcc ${CFLAGS} -c $? -o $@
 
-test: run-tests
+build/run-tests.o: src/run-tests.c
+	gcc ${CFLAGS} -c $? -o $@
+
+build/mylib.o: src/mylib.c
+	gcc ${CFLAGS} -c $? -o $@
+
+run-tests: CFLAGS += -ftest-coverage -O0 -Wextra -Wall -fprofile-arcs
+run-tests: build/run-tests.o build/mylib.o
+	gcc ${CFLAGS} $? -o $@
+
+ci: build/mylib.o build/ci.o 
+	gcc ${CFLAGS} $? -o $@
+
+test: directories run-tests
 	./run-tests
 
 clean:
-	rm run-tests ci
+	rm run-tests ci build run-tests.gcno -rf
